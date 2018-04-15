@@ -1,0 +1,44 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+namespace $Namespace$
+{
+    public class $Master$Data : ScriptableObject
+    {
+        public List<$Master$> Data = new List<$Master$>();
+    }
+
+    [Serializable]
+    public class $Master$
+    {
+$Columns$
+    }
+
+    public interface I$Master$Getter
+    {
+        $Master$[] GetAll();
+        $Master$ Get(string key);
+    }
+
+    public class $Master$Getter : I$Master$Getter
+    {
+        readonly Dictionary<string, $Master$> dataDic = new Dictionary<string, $Master$>();
+
+        public $Master$Getter()
+        {
+            throw new NotImplementedException();
+        }
+
+        public $Master$[] GetAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public $Master$ Get(string key)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
