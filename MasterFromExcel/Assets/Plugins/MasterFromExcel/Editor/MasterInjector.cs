@@ -18,7 +18,7 @@ namespace MasterFromExcel
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             var masterScriptPaths = importedAssets
-                .Where(s => Directory.Exists(ScriptableObjectOutputPath))
+                .Where(s => s.StartsWith(ScriptableObjectOutputPath))
                 .Where(s => Path.GetExtension(s) == ".cs");
 
             foreach (var path in masterScriptPaths)
