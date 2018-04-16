@@ -1,4 +1,8 @@
-﻿using System;
+﻿/////////////////////////////////////////////////
+//自動生成ファイルです！直接編集しないでください！//
+/////////////////////////////////////////////////
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -18,27 +22,29 @@ $Columns$
 
     public interface I$Master$Getter
     {
-        $Master$[] GetAll();
+        IEnumerable<$Master$> GetAll();
         $Master$ Get(string key);
     }
 
     public class $Master$Getter : I$Master$Getter
     {
-        readonly Dictionary<string, $Master$> dataDic = new Dictionary<string, $Master$>();
+        readonly Dictionary<string, $Master$> dataDic;
 
         public $Master$Getter()
         {
-            throw new NotImplementedException();
+            var $Master$Object = Resources.Load<$Master$Data>("$ResourcePath$$Master$.asset");
+            dataDic = $Master$Object.Data.ToDictionary(d => d.Key);
+            Resources.UnloadAsset($Master$Object);
         }
 
-        public $Master$[] GetAll()
+        public IEnumerable<$Master$> GetAll()
         {
-            throw new NotImplementedException();
+            return dataDic.Values;
         }
 
         public $Master$ Get(string key)
         {
-            throw new NotImplementedException();
+            return dataDic[key];
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,35 +11,35 @@ namespace MasterFromExcel
 {
     public class MasterCreator
     {
-        //TODO Dry
         const string ScriptableObjectTemplate = @"Assets/Plugins/MasterFromExcel/Editor/MasterScriptableObjectTemplate.txt";
-        const string MasterNamespace = @"Master";
-        const string MasterExcelPath = @"../MasterData/";
-        const string ScriptableObjectOutputPath = @"Assets/MasterFromExcel/";
 
-        [MenuItem("Tools/MasterFromExcel/GenerateMasterScript")]
+        [MenuItem("Tools/MasterFromExcel/GenerateScript")]
         static void GenerateScriptableObjectScript()
         {
             var excelPaths = GetExcelPaths();
             var soTemp = AssetDatabase.LoadAssetAtPath<TextAsset>(ScriptableObjectTemplate).text;
-            var scriptableObjectCodeGenerator = new ScriptableObjectCodeGenerator(soTemp, MasterNamespace);
+            var scriptableObjectCodeGenerator = new ScriptableObjectCodeGenerator(
+                soTemp, MfeConst.MasterNamespace, MfeConst.ScriptableObjectOutputPath
+            );
 
-            foreach (var excelPath in excelPaths.Take(1))
+            foreach (var excelPath in excelPaths)
             {
                 var masterName = Path.GetFileNameWithoutExtension(excelPath).ToTopUpper();
                 var sheet = WorkbookFactory.Create(excelPath).GetSheetAt(0);
 
-                var path = ScriptableObjectOutputPath + masterName + "Data.cs";
+                var path = MfeConst.ScriptableObjectScriptOutputPath + masterName + "Data.cs";
                 var code = scriptableObjectCodeGenerator.GenerateCode(masterName, sheet.GetRow(0), sheet.GetRow(1));
-                WriteScriptableObjectScript(path, code);
+                sheet.Workbook.Close();
 
+                WriteScriptableObjectScript(path, code);
                 AssetDatabase.ImportAsset(path);
+                Debug.Log($"import {path}");
             }
         }
 
         static IEnumerable<string> GetExcelPaths()
         {
-            return Directory.GetFiles(MasterExcelPath).Where(s => s.EndsWith(".xls") || s.EndsWith(".xlsx"));
+            return Directory.GetFiles(MfeConst.MasterExcelPath).Where(s => s.EndsWith(".xls") || s.EndsWith(".xlsx"));
         }
 
         static void WriteScriptableObjectScript(string path, string code)
@@ -48,10 +49,9 @@ namespace MasterFromExcel
                 //return;//変更がない場合はコンパイルを走らせないようにするため書き込まないのが理想
             }
 
-            var directory = Path.GetDirectoryName(ScriptableObjectOutputPath);
-            if (directory != null && !Directory.Exists(directory))
+            if (!Directory.Exists(MfeConst.ScriptableObjectScriptOutputPath))
             {
-                Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(MfeConst.ScriptableObjectScriptOutputPath);
             }
 
             File.WriteAllText(path, code);
@@ -67,11 +67,13 @@ namespace MasterFromExcel
 
         readonly string scriptableObjectCodeTemplate;
         readonly string @namespace;
+        readonly string scriptableObjectPath;
 
-        public ScriptableObjectCodeGenerator(string scriptableObjectCodeTemplate, string @namespace)
+        public ScriptableObjectCodeGenerator(string scriptableObjectCodeTemplate, string @namespace, string scriptableObjectPath)
         {
             this.scriptableObjectCodeTemplate = scriptableObjectCodeTemplate;
             this.@namespace = @namespace;
+            this.scriptableObjectPath = scriptableObjectPath;
         }
 
         public string GenerateCode(string masterName, IRow columns, IRow types)
@@ -82,13 +84,14 @@ namespace MasterFromExcel
             {
                 var column = columns.GetCell(i).StringCellValue.ToTopUpper();
                 var type = types.GetCell(i).StringCellValue;
-                fields.Append($"        {MakeField(column, type)}\n");
+                fields.Append($"        {MakeField(column, type)}{Environment.NewLine}");
             }
 
             return scriptableObjectCodeTemplate
+                .Replace("$ResourcePath$", GetPathUnderResources())
                 .Replace("$Namespace$", @namespace)
                 .Replace("$Master$", masterName)
-                .Replace("$Columns$", fields.ToString().TrimEnd("\n"));
+                .Replace("$Columns$", fields.ToString().TrimEnd(Environment.NewLine));
         }
 
         string MakeField(string column, string type)
@@ -99,6 +102,13 @@ namespace MasterFromExcel
             }
 
             return $"public string {column};";
+        }
+
+        string GetPathUnderResources()
+        {
+            const string Resources = "Resources/";
+            var index = scriptableObjectPath.IndexOf(Resources, StringComparison.Ordinal) + Resources.Length;
+            return scriptableObjectPath.Substring(index);
         }
     }
 }
