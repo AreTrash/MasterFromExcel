@@ -6,12 +6,12 @@
         {
             return source.Trim(trimChars.ToCharArray());
         }
-        
+
         public static string TrimStart(this string source, string trimChars)
         {
             return source.TrimStart(trimChars.ToCharArray());
         }
-        
+
         public static string TrimEnd(this string source, string trimChars)
         {
             return source.TrimEnd(trimChars.ToCharArray());

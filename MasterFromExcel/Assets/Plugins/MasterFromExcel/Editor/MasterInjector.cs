@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using NPOI.SS.UserModel;
-using UniRx;
 using UnityEditor;
-using UnityEditor.Callbacks;
 using UnityEngine;
 
 namespace MasterFromExcel
@@ -67,7 +63,7 @@ namespace MasterFromExcel
             foreach (IRow row in sheet)
             {
                 if (row.RowNum <= 1) continue;
-                add.Invoke(data, new[] { GetDto(row, valueGen, nameWithoutData) });
+                add.Invoke(data, new[] {GetDto(row, valueGen, nameWithoutData)});
             }
 
             sheet.Workbook.Close();
@@ -91,7 +87,7 @@ namespace MasterFromExcel
 
         static bool TryGetSheet(string masterName, out ISheet sheet)
         {
-            foreach (var xlsExs in new[] { ".xlsx", ".xls" })
+            foreach (var xlsExs in new[] {".xlsx", ".xls"})
             {
                 var path = MfeConst.MasterExcelPath + masterName + xlsExs;
                 if (!File.Exists(path)) continue;
