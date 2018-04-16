@@ -58,7 +58,7 @@ namespace MasterFromExcel
 
             var data = scriptableObject.GetType().GetField("Data").GetValue(scriptableObject);
             var add = data.GetType().GetMethod("Add", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
-            var valueGen = new ValueGenerator(sheet.GetRow(0), sheet.GetRow(1));
+            var valueGen = new ValueGenerator(sheet.GetRow(0), sheet.GetRow(1), MfeConst.MasterNamespace);
 
             foreach (IRow row in sheet)
             {
@@ -106,13 +106,15 @@ namespace MasterFromExcel
 
         readonly IRow columns;
         readonly IRow types;
+        readonly string @namespace;
 
         public int ColumnCount => columns.Cells.Count;
 
-        public ValueGenerator(IRow columns, IRow types)
+        public ValueGenerator(IRow columns, IRow types, string @namespace)
         {
             this.columns = columns;
             this.types = types;
+            this.@namespace = @namespace;
         }
 
         public string GetField(int index)
@@ -156,6 +158,9 @@ namespace MasterFromExcel
                 case "datetime[]":
                     return GetArrayValue(valueCell, DateTime.Parse);
 
+                case "enum":
+                    return GetEnumValue(valueCell.ToString().ToTopUpper(), columns.Cells[index]);
+
                 default:
                     return valueCell.ToString();
             }
@@ -166,6 +171,13 @@ namespace MasterFromExcel
             return valueCell.StringCellValue.Split(Separator)
                 .Select(s => s == "" ? default(T) : parser(s))
                 .ToArray();
+        }
+
+        object GetEnumValue(string value, ICell columnCell)
+        {
+            var enumName = columnCell.StringCellValue.ToTopUpper();
+            var type = Assembly.Load("Assembly-CSharp").GetType(@namespace + "." + enumName);
+            return Enum.Parse(type, value);
         }
     }
 }

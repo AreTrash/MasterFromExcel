@@ -83,7 +83,7 @@ namespace MasterFromExcel
             for (var i = 0; i < columns.Count(); i++)
             {
                 var column = columns.GetCell(i).StringCellValue.ToTopUpper();
-                var type = types.GetCell(i).StringCellValue;
+                var type = types.GetCell(i).StringCellValue.ToLower();
                 fields.Append($"        {MakeField(column, type)}{Environment.NewLine}");
             }
 
@@ -96,6 +96,11 @@ namespace MasterFromExcel
 
         string MakeField(string column, string type)
         {
+            if (type == "enum")
+            {
+                return $"public {column} {column};";
+            }
+
             if (ConvertibleTypes.Contains(type.Replace("[]", "")))
             {
                 return $"public {type} {column};";
