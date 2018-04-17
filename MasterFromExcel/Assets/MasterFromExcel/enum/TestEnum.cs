@@ -8,4 +8,10 @@
         Hard,
         Challenge,
     }
+
+    public enum AreaEnemyStatus
+    {
+        Tutorial,
+
+    }
 }

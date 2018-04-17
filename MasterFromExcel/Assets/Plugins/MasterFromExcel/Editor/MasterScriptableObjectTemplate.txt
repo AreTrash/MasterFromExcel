@@ -23,12 +23,12 @@ $Columns$
     public interface I$Master$Dao
     {
         IEnumerable<$Master$> GetAll();
-        $Master$ Get(string key);
+        $Master$ Get($Key$ key);
     }
 
     public class $Master$Dao : I$Master$Dao
     {
-        readonly Dictionary<string, $Master$> dataDic;
+        readonly Dictionary<$Key$, $Master$> dataDic;
 
         public $Master$Dao()
         {
@@ -42,7 +42,7 @@ $Columns$
             return dataDic.Values;
         }
 
-        public $Master$ Get(string key)
+        public $Master$ Get($Key$ key)
         {
             return dataDic[key];
         }

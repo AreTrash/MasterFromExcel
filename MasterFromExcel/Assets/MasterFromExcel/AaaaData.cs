@@ -17,7 +17,7 @@ namespace Master
     [Serializable]
     public class Aaaa
     {
-        public string Key;
+        public AaaaKey Key;
         public int Arg;
         public string Effect;
         public float FloatTest;
@@ -31,12 +31,12 @@ namespace Master
     public interface IAaaaDao
     {
         IEnumerable<Aaaa> GetAll();
-        Aaaa Get(string key);
+        Aaaa Get(AaaaKey key);
     }
 
     public class AaaaDao : IAaaaDao
     {
-        readonly Dictionary<string, Aaaa> dataDic;
+        readonly Dictionary<AaaaKey, Aaaa> dataDic;
 
         public AaaaDao()
         {
@@ -50,7 +50,7 @@ namespace Master
             return dataDic.Values;
         }
 
-        public Aaaa Get(string key)
+        public Aaaa Get(AaaaKey key)
         {
             return dataDic[key];
         }
