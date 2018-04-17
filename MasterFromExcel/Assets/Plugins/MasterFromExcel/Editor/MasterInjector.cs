@@ -128,7 +128,8 @@ namespace MasterFromExcel
         {
             if (valueCell == null) return null;
 
-            switch (types.Cells[index].StringCellValue.ToLower())
+            var type = types.Cells[index].StringCellValue;
+            switch (type.ToLower())
             {
                 case "int":
                     return (int)valueCell.NumericCellValue;
@@ -164,7 +165,7 @@ namespace MasterFromExcel
                     return GetEnumValue(valueCell.ToString().ToTopUpper(), columns.Cells[index]);
 
                 default:
-                    return valueCell.ToString();
+                    return GetKeyTypeValue(valueCell.ToString(), ConvertibleTypeUtility.GetString(type));
             }
         }
 
@@ -180,6 +181,14 @@ namespace MasterFromExcel
             var enumName = columnCell.StringCellValue.ToTopUpper();
             var type = Assembly.Load(assemblyName).GetType(@namespace + "." + enumName);
             return Enum.Parse(type, value);
+        }
+
+        object GetKeyTypeValue(string value, string typeName)
+        {
+            var type = Assembly.Load(assemblyName).GetType(@namespace + "." + typeName);
+            dynamic kvo = Activator.CreateInstance(type);
+            kvo.Value = value;
+            return kvo;
         }
     }
 }

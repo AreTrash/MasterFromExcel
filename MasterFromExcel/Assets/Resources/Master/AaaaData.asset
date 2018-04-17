@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Name: AaaaData
   m_EditorClassIdentifier: 
   Data:
-  - Key: target
+  - Key:
+      Value: target
     Arg: 0
     Effect: target
     FloatTest: 1.234
@@ -26,7 +27,8 @@ MonoBehaviour:
     - e
     ArrayIntTest: 010000000100000001000000010000000100000000000000
     TestEnum: 1
-  - Key: pow_up
+  - Key:
+      Value: pow_up
     Arg: 1
     Effect: pow_up
     FloatTest: 1.2345
@@ -40,7 +42,8 @@ MonoBehaviour:
     - f
     ArrayIntTest: 0200000002000000020000000200000002000000
     TestEnum: 2
-  - Key: pow_down
+  - Key:
+      Value: pow_down
     Arg: -1
     Effect: pow_down
     FloatTest: 1.2345678
