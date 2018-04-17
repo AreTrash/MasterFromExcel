@@ -40,7 +40,7 @@ namespace Master
 
         public AaaaDao()
         {
-            var AaaaObject = Resources.Load<AaaaData>("Master/Aaaa.asset");
+            var AaaaObject = Resources.Load<AaaaData>("MasterSample/Aaaa.asset");
             dataDic = AaaaObject.Data.ToDictionary(d => d.Key);
             Resources.UnloadAsset(AaaaObject);
         }

@@ -1,4 +1,6 @@
-﻿namespace Master
+﻿//Enumだけは手動で入力してください
+
+namespace Master
 {
     public enum TestEnum
     {
@@ -12,6 +14,5 @@
     public enum AreaEnemyStatus
     {
         Tutorial,
-
     }
 }
