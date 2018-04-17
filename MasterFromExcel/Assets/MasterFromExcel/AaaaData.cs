@@ -52,7 +52,7 @@ namespace Master
 
         public Aaaa Get(AaaaKey key)
         {
-            return dataDic[key];
+            return dataDic.ContainsKey(key) ? dataDic[key] : null;
         }
     }
 }

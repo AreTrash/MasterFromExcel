@@ -44,7 +44,7 @@ $Columns$
 
         public $Master$ Get($Key$ key)
         {
-            return dataDic[key];
+            return dataDic.ContainsKey(key) ? dataDic[key] : null;
         }
     }
 }
