@@ -11,50 +11,73 @@ namespace MasterFromExcel
 {
     public class MasterCreator
     {
-        const string ScriptableObjectTemplate = @"Assets/Plugins/MasterFromExcel/Editor/MasterScriptableObjectTemplate.txt";
+        const string ScriptableObjectTemplateName = @"MasterScriptableObjectTemplate.txt";
+        const string MasterInstallerTemplateName = @"MasterInstallerTemplate.txt";
 
         [MenuItem("Tools/MasterFromExcel/GenerateScript")]
-        static void GenerateScriptableObjectScript()
+        static void Generate()
         {
-            var excelPaths = GetExcelPaths();
-            var soTemp = AssetDatabase.LoadAssetAtPath<TextAsset>(ScriptableObjectTemplate).text;
+            var allAssetPaths = AssetDatabase.GetAllAssetPaths();
+            var sotPath = allAssetPaths.First(s => s.EndsWith(ScriptableObjectTemplateName));
+            var mitPath = allAssetPaths.First(s => s.EndsWith(MasterInstallerTemplateName));
+            var excelPaths = Directory.GetFiles(MfeConst.MasterExcelDirectory).Where(s => s.EndsWith(".xls") || s.EndsWith(".xlsx"));
+
+            GenerateScriptableObjectScript(sotPath, excelPaths);
+            GenerateMasterInstallerScript(mitPath, excelPaths);
+        }
+
+        static void GenerateScriptableObjectScript(string sotPath, IEnumerable<string> excelPaths)
+        {
+            var soTemp = AssetDatabase.LoadAssetAtPath<TextAsset>(sotPath).text;
             var scriptableObjectCodeGenerator = new ScriptableObjectCodeGenerator(
-                soTemp, MfeConst.MasterNamespace, MfeConst.ScriptableObjectOutputPath
+                soTemp, MfeConst.MasterNamespace, MfeConst.ScriptableObjectOutputDirectory
             );
 
             foreach (var excelPath in excelPaths)
             {
-                var masterName = Path.GetFileNameWithoutExtension(excelPath).ToTopUpper();
+                var masterName = GetMasterName(excelPath);
                 var sheet = WorkbookFactory.Create(excelPath).GetSheetAt(0);
 
-                var path = MfeConst.ScriptableObjectScriptOutputPath + masterName + "Data.cs";
+                var path = MfeConst.ScriptableObjectScriptOutputDirectory + masterName + "Data.cs";
                 var code = scriptableObjectCodeGenerator.GenerateCode(masterName, sheet.GetRow(0), sheet.GetRow(1));
                 sheet.Workbook.Close();
 
-                WriteScriptableObjectScript(path, code);
-                AssetDatabase.ImportAsset(path);
-                Debug.Log($"import {path}");
+                ImportScript(path, code);
             }
         }
 
-        static IEnumerable<string> GetExcelPaths()
+        static void GenerateMasterInstallerScript(string mitPath, IEnumerable<string> excelPaths)
         {
-            return Directory.GetFiles(MfeConst.MasterExcelPath).Where(s => s.EndsWith(".xls") || s.EndsWith(".xlsx"));
+            var miTemp = AssetDatabase.LoadAssetAtPath<TextAsset>(mitPath).text;
+            var masterInstallerCodeGenerator = new MasterInstallerCodeGenerator(miTemp, MfeConst.MasterNamespace);
+            var masterNames = excelPaths.Select(GetMasterName);
+            var code = masterInstallerCodeGenerator.GenerateCode(masterNames);
+            ImportScript(MfeConst.MasterInstallerOutputPath, code);
         }
 
-        static void WriteScriptableObjectScript(string path, string code)
+        static string GetMasterName(string excelPath)
+        {
+            return Path.GetFileNameWithoutExtension(excelPath).ToTopUpper();
+        }
+
+        static void ImportScript(string path, string code)
         {
             if (File.Exists(path) && code == File.ReadAllText(path))
             {
-                //return;//変更がない場合はコンパイルを走らせないようにするため書き込まないのが理想
+                Debug.Log($"no change in {path}");
+                return;
             }
 
-            if (!Directory.Exists(MfeConst.ScriptableObjectScriptOutputPath))
+            var directory = Path.GetDirectoryName(path);
+
+            if (directory != null && !Directory.Exists(directory))
             {
-                Directory.CreateDirectory(MfeConst.ScriptableObjectScriptOutputPath);
+                Directory.CreateDirectory(directory);
             }
 
             File.WriteAllText(path, code);
+            AssetDatabase.ImportAsset(path);
+            Debug.Log($"import {path}");
         }
     }
 
@@ -62,7 +85,7 @@ namespace MasterFromExcel
     {
         static readonly string[] ConvertibleTypes =
         {
-            "int", "long", "float", "double", "bool", "string", "DateTime",
+            "int", "long", "float", "double", "bool", "string", "datetime",
         };
 
         readonly string scriptableObjectCodeTemplate;
@@ -88,10 +111,10 @@ namespace MasterFromExcel
             }
 
             return scriptableObjectCodeTemplate
-                .Replace("$ResourcePath$", GetPathUnderResources())
                 .Replace("$Namespace$", @namespace)
                 .Replace("$Master$", masterName)
-                .Replace("$Columns$", fields.ToString().TrimEnd(Environment.NewLine));
+                .Replace("$Columns$", fields.ToString().TrimEnd(Environment.NewLine))
+                .Replace("$ResourcePath$", GetPathUnderResources());
         }
 
         string MakeField(string column, string type)
@@ -114,6 +137,32 @@ namespace MasterFromExcel
             const string Resources = "Resources/";
             var index = scriptableObjectPath.IndexOf(Resources, StringComparison.Ordinal) + Resources.Length;
             return scriptableObjectPath.Substring(index);
+        }
+    }
+
+    public class MasterInstallerCodeGenerator
+    {
+        readonly string masterInstallerCodeTemplate;
+        readonly string @namespace;
+
+        public MasterInstallerCodeGenerator(string masterInstallerCodeTemplate, string @namespace)
+        {
+            this.masterInstallerCodeTemplate = masterInstallerCodeTemplate;
+            this.@namespace = @namespace;
+        }
+
+        public string GenerateCode(IEnumerable<string> masterNames)
+        {
+            var bindings = string.Join(Environment.NewLine, masterNames.Select(mn => $"            {MakeBindings(mn)}"));
+
+            return masterInstallerCodeTemplate
+                .Replace("$Namespace$", @namespace)
+                .Replace("$Bindings$", bindings);
+        }
+
+        string MakeBindings(string masterName)
+        {
+            return $"Container.Bind<I{masterName}Dao>().To<{masterName}Dao>().AsSingle();";
         }
     }
 }

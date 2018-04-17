@@ -14,7 +14,7 @@ namespace MasterFromExcel
         static void CreateScriptableObject()
         {
             var scriptPaths = Directory
-                .GetFiles(MfeConst.ScriptableObjectScriptOutputPath)
+                .GetFiles(MfeConst.ScriptableObjectScriptOutputDirectory)
                 .Where(p => Path.GetExtension(p) == ".cs");
 
             foreach (var scriptPath in scriptPaths)
@@ -23,9 +23,9 @@ namespace MasterFromExcel
                 try
                 {
                     var scriptableObject = GenerateScriptableObject(asset.name);
-                    if (!scriptableObject) return;
+                    if (!scriptableObject) continue;
 
-                    var path = MfeConst.ScriptableObjectOutputPath + asset.name + ".asset";
+                    var path = MfeConst.ScriptableObjectOutputDirectory + asset.name + ".asset";
                     WriteScriptableObject(scriptableObject, path);
                     Debug.Log($"inject to {path}");
                 }
@@ -39,9 +39,9 @@ namespace MasterFromExcel
 
         static void WriteScriptableObject(ScriptableObject scriptableObject, string path)
         {
-            if (!Directory.Exists(MfeConst.ScriptableObjectOutputPath))
+            if (!Directory.Exists(MfeConst.ScriptableObjectOutputDirectory))
             {
-                Directory.CreateDirectory(MfeConst.ScriptableObjectOutputPath);
+                Directory.CreateDirectory(MfeConst.ScriptableObjectOutputDirectory);
             }
 
             //TODO タイムスタンプ毎回変わるけどいい？
@@ -58,7 +58,7 @@ namespace MasterFromExcel
 
             var data = scriptableObject.GetType().GetField("Data").GetValue(scriptableObject);
             var add = data.GetType().GetMethod("Add", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
-            var valueGen = new ValueGenerator(sheet.GetRow(0), sheet.GetRow(1), MfeConst.MasterNamespace);
+            var valueGen = new ValueGenerator(sheet.GetRow(0), sheet.GetRow(1), MfeConst.MasterNamespace, MfeConst.AssemblyName);
 
             foreach (IRow row in sheet)
             {
@@ -72,7 +72,7 @@ namespace MasterFromExcel
 
         static object GetDto(IRow row, ValueGenerator valueGen, string dtoName)
         {
-            var dto = Activator.CreateInstance("Assembly-CSharp", MfeConst.MasterNamespace + "." + dtoName).Unwrap();
+            var dto = Activator.CreateInstance(MfeConst.AssemblyName, MfeConst.MasterNamespace + "." + dtoName).Unwrap();
 
             for (var i = 0; i < valueGen.ColumnCount; i++)
             {
@@ -89,7 +89,7 @@ namespace MasterFromExcel
         {
             foreach (var xlsExs in new[] {".xlsx", ".xls"})
             {
-                var path = MfeConst.MasterExcelPath + masterName + xlsExs;
+                var path = MfeConst.MasterExcelDirectory + masterName + xlsExs;
                 if (!File.Exists(path)) continue;
                 sheet = WorkbookFactory.Create(path).GetSheetAt(0);
                 return true;
@@ -107,14 +107,16 @@ namespace MasterFromExcel
         readonly IRow columns;
         readonly IRow types;
         readonly string @namespace;
+        readonly string assemblyName;
 
         public int ColumnCount => columns.Cells.Count;
 
-        public ValueGenerator(IRow columns, IRow types, string @namespace)
+        public ValueGenerator(IRow columns, IRow types, string @namespace, string assemblyName)
         {
             this.columns = columns;
             this.types = types;
             this.@namespace = @namespace;
+            this.assemblyName = assemblyName;
         }
 
         public string GetField(int index)
@@ -176,7 +178,7 @@ namespace MasterFromExcel
         object GetEnumValue(string value, ICell columnCell)
         {
             var enumName = columnCell.StringCellValue.ToTopUpper();
-            var type = Assembly.Load("Assembly-CSharp").GetType(@namespace + "." + enumName);
+            var type = Assembly.Load(assemblyName).GetType(@namespace + "." + enumName);
             return Enum.Parse(type, value);
         }
     }

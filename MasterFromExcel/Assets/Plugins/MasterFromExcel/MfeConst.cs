@@ -2,9 +2,11 @@
 {
     public static class MfeConst
     {
+        public const string AssemblyName = "Assembly-CSharp";
         public const string MasterNamespace = @"Master";
-        public const string MasterExcelPath = @"../MasterData/";
-        public const string ScriptableObjectOutputPath = @"Assets/Resources/Master/"; //Resources以下に設定してください
-        public const string ScriptableObjectScriptOutputPath = @"Assets/MasterFromExcel/";
+        public const string MasterExcelDirectory = @"../MasterData/";
+        public const string ScriptableObjectOutputDirectory = @"Assets/Resources/Master/"; //Resources以下に設定してください
+        public const string ScriptableObjectScriptOutputDirectory = @"Assets/MasterFromExcel/";
+        public const string MasterInstallerOutputPath = @"Assets/MasterFromExcel/MasterInstaller.cs";
     }
 }

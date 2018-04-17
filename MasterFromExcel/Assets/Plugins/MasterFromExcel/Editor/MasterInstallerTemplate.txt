@@ -1,0 +1,16 @@
+﻿/////////////////////////////////////////////////
+//自動生成ファイルです！直接編集しないでください！//
+/////////////////////////////////////////////////
+
+using Zenject;
+
+namespace $Namespace$
+{
+    public class MasterInstaller : MonoInstaller
+    {
+        public override void InstallBindings()
+        {
+$Bindings$
+        }
+    }
+}

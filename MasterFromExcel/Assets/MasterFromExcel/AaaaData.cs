@@ -28,17 +28,17 @@ namespace Master
         public TestEnum TestEnum;
     }
 
-    public interface IAaaaGetter
+    public interface IAaaaDao
     {
         IEnumerable<Aaaa> GetAll();
         Aaaa Get(string key);
     }
 
-    public class AaaaGetter : IAaaaGetter
+    public class AaaaDao : IAaaaDao
     {
         readonly Dictionary<string, Aaaa> dataDic;
 
-        public AaaaGetter()
+        public AaaaDao()
         {
             var AaaaObject = Resources.Load<AaaaData>("Master/Aaaa.asset");
             dataDic = AaaaObject.Data.ToDictionary(d => d.Key);
