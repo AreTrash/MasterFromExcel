@@ -121,6 +121,11 @@ namespace MasterFromExcel
         {
             return ConvertibleTypes.Contains(Regex.Replace(type.ToLower(), @"\[\]$", ""));
         }
+
+        public static string GetString(string type)
+        {
+            return IsDefined(type) ? type.ToLower() : $"{type.ToTopUpper()}Key";
+        }
     }
 
     public class ScriptableObjectCodeGenerator
@@ -147,8 +152,7 @@ namespace MasterFromExcel
                 fields.Append($"        {MakeField(column, type)}{Environment.NewLine}");
             }
 
-            var keyType = types.GetCell(0).StringCellValue;
-            var key = ConvertibleTypeUtility.IsDefined(keyType) ? keyType.ToLower() : $"{keyType.ToTopUpper()}Key";
+            var key = ConvertibleTypeUtility.GetString(types.GetCell(0).StringCellValue);
 
             return scriptableObjectCodeTemplate
                 .Replace("$Namespace$", @namespace)
@@ -160,17 +164,9 @@ namespace MasterFromExcel
 
         string MakeField(string column, string type)
         {
-            if (type == "enum")
-            {
-                return $"public {column} {column};";
-            }
-
-            if (ConvertibleTypeUtility.IsDefined(type))
-            {
-                return $"public {type} {column};";
-            }
-
-            return $"public {type.ToTopUpper()}Key {column};";
+            return type == "enum" ? 
+                $"public {column} {column};" : 
+                $"public {ConvertibleTypeUtility.GetString(type)} {column};";
         }
 
         string GetPathUnderResources()
@@ -234,11 +230,11 @@ namespace MasterFromExcel
         string MakeKvo(string key)
         {
             return @"    [Serializable]
-    public struct $Key$Key
+    public struct $Key$
     {
         public string Value;
     }"
-                .Replace("$Key$", key.ToTopUpper());
+                .Replace("$Key$", ConvertibleTypeUtility.GetString(key));
         }
     }
 }
