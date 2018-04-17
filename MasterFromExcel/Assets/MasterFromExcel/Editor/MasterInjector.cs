@@ -27,7 +27,6 @@ namespace MasterFromExcel
 
                     var path = MfeConst.ScriptableObjectOutputDirectory + asset.name + ".asset";
                     WriteScriptableObject(scriptableObject, path);
-                    Debug.Log($"inject to {path}");
                 }
                 catch (Exception)
                 {
@@ -46,6 +45,7 @@ namespace MasterFromExcel
 
             //TODO タイムスタンプ毎回変わるけどいい？
             AssetDatabase.CreateAsset(scriptableObject, path);
+            Debug.Log($"inject to {path}");
         }
 
         static ScriptableObject GenerateScriptableObject(string name)

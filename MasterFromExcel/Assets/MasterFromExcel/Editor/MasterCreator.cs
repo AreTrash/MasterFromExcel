@@ -38,7 +38,7 @@ namespace MasterFromExcel
                 var masterName = Path.GetFileNameWithoutExtension(ep).ToTopUpper();
                 var sheet = WorkbookFactory.Create(ep).GetSheetAt(0);
                 return new SheetContext(masterName, sheet);
-            }).ToArray();
+            });
 
             var soTemp = GetTemplate(ScriptableObjectTemplateName, allAssetPaths);
             GenerateScriptableObjectScript(soTemp, sheetContexts);
@@ -107,24 +107,6 @@ namespace MasterFromExcel
             File.WriteAllText(path, code);
             AssetDatabase.ImportAsset(path);
             Debug.Log($"import {path}");
-        }
-    }
-
-    public static class ConvertibleTypeUtility
-    {
-        static readonly IEnumerable<string> ConvertibleTypes = new[]
-        {
-            "int", "long", "float", "double", "bool", "string", "datetime", "enum",
-        };
-
-        public static bool IsDefined(string type)
-        {
-            return ConvertibleTypes.Contains(Regex.Replace(type.ToLower(), @"\[\]$", ""));
-        }
-
-        public static string GetString(string type)
-        {
-            return IsDefined(type) ? type.ToLower() : $"{type.ToTopUpper()}Key";
         }
     }
 
