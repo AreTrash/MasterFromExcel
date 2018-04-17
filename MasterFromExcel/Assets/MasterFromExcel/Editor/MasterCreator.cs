@@ -66,27 +66,53 @@ namespace MasterFromExcel
 
             foreach (var sc in sheetContexts)
             {
-                var path = MfeConst.ScriptableObjectScriptOutputDirectory + sc.MasterName + "Data.cs";
-                var columns = sc.Sheet.GetRow(0);
-                var types = sc.Sheet.GetRow(1);
-                var code = scriptableObjectCodeGenerator.GenerateCode(sc.MasterName, columns, types);
-                ImportScript(code, path);
+                try
+                {
+                    var path = MfeConst.ScriptableObjectScriptOutputDirectory + sc.MasterName + "Data.cs";
+                    var columns = sc.Sheet.GetRow(0);
+                    var types = sc.Sheet.GetRow(1);
+                    var code = scriptableObjectCodeGenerator.GenerateCode(sc.MasterName, columns, types);
+                    ImportScript(code, path);
+                }
+                catch (Exception)
+                {
+                    Debug.LogAssertion($"error occurred in {sc.MasterName}");
+                    throw;
+                }
             }
         }
 
         static void GenerateMasterInstallerScript(string miTemp, IEnumerable<SheetContext> sheetContexts)
         {
             var masterInstallerCodeGenerator = new MasterInstallerCodeGenerator(miTemp, MfeConst.MasterNamespace);
-            var code = masterInstallerCodeGenerator.GenerateCode(sheetContexts.Select(sc => sc.MasterName));
-            ImportScript(code, MfeConst.MasterInstallerOutputPath);
+
+            try
+            {
+                var code = masterInstallerCodeGenerator.GenerateCode(sheetContexts.Select(sc => sc.MasterName));
+                ImportScript(code, MfeConst.MasterInstallerOutputPath);
+            }
+            catch (Exception)
+            {
+                Debug.LogAssertion("error occurred in generating installer script");
+                throw;
+            }
         }
 
         static void GenerateMasterKeyValueObjectsScript(string mkvoTemp, IEnumerable<SheetContext> sheetContexts)
         {
             var masterKeyValueObjectsGenerator = new MasterKeyValueObjectsGenerator(mkvoTemp, MfeConst.MasterNamespace);
-            var types = sheetContexts.SelectMany(sc => sc.Sheet.GetRow(1).Cells.Select(c => c.ToString()));
-            var code = masterKeyValueObjectsGenerator.GenerateCode(types);
-            ImportScript(code, MfeConst.MasterKeyValueObjectsOutputPath);
+
+            try
+            {
+                var types = sheetContexts.SelectMany(sc => sc.Sheet.GetRow(1).Cells.Select(c => c.ToString()));
+                var code = masterKeyValueObjectsGenerator.GenerateCode(types);
+                ImportScript(code, MfeConst.MasterKeyValueObjectsOutputPath);
+            }
+            catch (Exception)
+            {
+                Debug.LogAssertion("error occurred in generating mkvo scripts");
+                throw;
+            }
         }
 
         static void ImportScript(string code, string path)
