@@ -1,6 +1,6 @@
 # MasterFromExcel
 
-MasterFromExcel/Assets/MasterFromExcel/ を基本コピペで  
+Assets/MasterFromExcel/ を基本コピペで  
 NPOIとZenjectもないと動かないのでなかったらそれもコピペ
 
 ## 使用ライブラリ
